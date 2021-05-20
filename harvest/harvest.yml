@@ -1,0 +1,34 @@
+
+Exporters:
+  Harvest:
+    exporter: prometheus
+    addr: 0.0.0.0
+    master: True
+
+Defaults:
+  collectors:
+    - Zapi
+    - ZapiPerf
+  exporters:
+    - Harvest
+  use_insecure_tls: true
+
+Pollers:
+  #unix:
+  #  datacenter: local
+  #  addr: localhost
+  #  collectors:
+  #    - Unix
+  #  exporters:
+  #    - prometheus
+
+  # add your Cdot / 7Mode pollers below, example:
+
+  cluster-01:
+    datacenter: DC-01
+    addr: 192.168.55.151
+    auth_style: basic_auth
+    prometheus_port: 25000
+    username: admin
+    password: netapp123
+
