@@ -1,5 +1,3 @@
-Tools:
-  grafana_api_token: eyJrIjoiWkU2RzJubWR6TnJoSFZBeFo5WFlYbnNwOWRCTWVuMVAiLCJuIjoiYXBpa2V5Y3VybCIsImlkIjoxfQ==
 
 Exporters:
   Harvest:
@@ -26,18 +24,10 @@ Pollers:
 
   # add your Cdot / 7Mode pollers below, example:
 
-  ansible-src:
-    datacenter: vsim
+  cluster-1:
+    datacenter: DC1
     addr: 192.168.55.151
     auth_style: basic_auth
     prometheus_port: 25000
-    username: admin
-    password: netapp123
-
-  ansible_cluster:
-    datacenter: vsim
-    addr: 172.31.199.151
-    auth_style: basic_auth
-    prometheus_port: 25001
-    username: admin
-    password: netapp123
+    username: admin-username
+    password: admin-password

@@ -12,5 +12,3 @@ scrape_configs:
 #  - targets: ['node-exporter:9100']
 - job_name: 'harvest'
   static_configs:
-  - targets: ['harvest_ansible-src:25000']
-  - targets: ['harvest_ansible_cluster:25001']
