@@ -24,11 +24,10 @@ Pollers:
 
   # add your Cdot / 7Mode pollers below, example:
 
-  cluster-01:
-    datacenter: DC-01
+  cluster-1:
+    datacenter: DC1
     addr: 192.168.55.151
     auth_style: basic_auth
     prometheus_port: 25000
-    username: admin
-    password: netapp123
-
+    username: admin-username
+    password: admin-password
