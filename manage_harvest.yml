@@ -10,7 +10,6 @@
   - name: Verify images
     docker_image:
       name: "{{ item }}"
-      name: prom/prometheus
       source: pull
     loop:
     - prom/prometheus
