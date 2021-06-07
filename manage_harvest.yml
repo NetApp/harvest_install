@@ -25,12 +25,17 @@
     docker_network:
       name: harvest
     tags: setup
+  - name: Create Prometheus storage
+    docker_volume:
+      name: prometheus_data
   - name: Setup/Verify Prometheus
     docker_container:
       name: harvest_prometheus
       image: prom/prometheus
       restart: true
+      restart_policy: unless-stopped
       volumes:
+      - prometheus_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       command:
       - '--config.file=/etc/prometheus/prometheus.yml' 
@@ -42,6 +47,7 @@
     docker_container:
       name: harvest_grafana
       image: grafana/grafana
+      restart_policy: unless-stopped
       env:
         GF_SECURITY_ADMIN_PASSWORD=pass
       ports:
@@ -53,6 +59,7 @@
     docker_container:
       name: "harvest_{{ item }}"
       image: schmots1/na_harvest
+      restart_policy: unless-stopped
       volumes:
       - ./harvest/:/etc/harvest/
       command:
@@ -132,4 +139,24 @@
       name: "harvest_{{ item }}"
       state: absent
     loop: "{{ Pollers|list}}" 
-    tags: never, del
+    tags: never, del, update
+  - name: update images
+    docker_image:
+      name: schmots1/na_harvest
+      force_source: true
+      source: pull
+    tags: never, upgrade
+  - name: Update Harvest pollers
+    docker_container:
+      name: "harvest_{{ item }}"
+      image: schmots1/na_harvest
+      restart: true
+      volumes:
+      - ./harvest/:/etc/harvest/
+      command:
+      - "{{ Pollers[item].prometheus_port}} -p {{ item }}"
+      networks:
+      - name: harvest
+      detach: true
+    loop: "{{ Pollers|list}}" 
+    tags: never, upgrade
