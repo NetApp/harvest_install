@@ -42,6 +42,7 @@
     docker_container:
       name: harvest_grafana
       image: grafana/grafana
+      restart: true
       env:
         GF_SECURITY_ADMIN_PASSWORD=pass
       ports:
@@ -53,6 +54,7 @@
     docker_container:
       name: "harvest_{{ item }}"
       image: schmots1/na_harvest
+      restart: true
       volumes:
       - ./harvest/:/etc/harvest/
       command:
@@ -132,4 +134,24 @@
       name: "harvest_{{ item }}"
       state: absent
     loop: "{{ Pollers|list}}" 
-    tags: never, del
+    tags: never, del, update
+  - name: update images
+    docker_image:
+      name: schmots1/na_harvest
+      force_source: true
+      source: pull
+    tags: never, upgrade
+  - name: Update Harvest pollers
+    docker_container:
+      name: "harvest_{{ item }}"
+      image: schmots1/na_harvest
+      restart: true
+      volumes:
+      - ./harvest/:/etc/harvest/
+      command:
+      - "{{ Pollers[item].prometheus_port}} -p {{ item }}"
+      networks:
+      - name: harvest
+      detach: true
+    loop: "{{ Pollers|list}}" 
+    tags: never, upgrade
