@@ -139,7 +139,7 @@
       name: "harvest_{{ item }}"
       state: absent
     loop: "{{ Pollers|list}}" 
-    tags: never, del, update
+    tags: never, del, upgrade
   - name: update images
     docker_image:
       name: schmots1/na_harvest
