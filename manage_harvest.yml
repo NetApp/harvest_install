@@ -25,12 +25,17 @@
     docker_network:
       name: harvest
     tags: setup
+  - name: Create Prometheus storage
+    docker_volume:
+      name: prometheus_data
   - name: Setup/Verify Prometheus
     docker_container:
       name: harvest_prometheus
       image: prom/prometheus
       restart: true
+      restart_policy: unless-stopped
       volumes:
+      - prometheus_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       command:
       - '--config.file=/etc/prometheus/prometheus.yml' 
@@ -42,7 +47,7 @@
     docker_container:
       name: harvest_grafana
       image: grafana/grafana
-      restart: true
+      restart_policy: unless-stopped
       env:
         GF_SECURITY_ADMIN_PASSWORD=pass
       ports:
@@ -54,7 +59,7 @@
     docker_container:
       name: "harvest_{{ item }}"
       image: schmots1/na_harvest
-      restart: true
+      restart_policy: unless-stopped
       volumes:
       - ./harvest/:/etc/harvest/
       command:
