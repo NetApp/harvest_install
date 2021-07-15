@@ -13,13 +13,13 @@
       source: pull
     loop:
     - prom/prometheus
-    - schmots1/na_harvest
+    - rahulguptajss/harvest
     - grafana/grafana
     tags: setup
   - name: Configure/Verify Prometheus targets
     lineinfile:
       path: ./prometheus/prometheus.yml
-      line: "  - targets: ['harvest_{{ item }}:{{Pollers[item].prometheus_port}}']"
+      line: "  - targets: ['harvest_{{ item }}:{{Pollers[item].ansible_port}}']"
     loop: "{{ Pollers|list }}"
   - name: Create Harvest Network
     docker_network:
@@ -58,12 +58,12 @@
   - name: Setup/verify Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: schmots1/na_harvest
+      image: rahulguptajss/harvest
       restart_policy: unless-stopped
       volumes:
       - ./harvest/:/etc/harvest/
       command:
-      - "{{ Pollers[item].prometheus_port}} -p {{ item }}"
+      - "--config /etc/harvest/harvest.yml -p {{ item }} --promPort {{ Pollers[item].ansible_port}}"
       networks:
       - name: harvest
       detach: true
@@ -93,11 +93,9 @@
   - name: Prep Grafana dashboard load 
     lineinfile:
       path: ./harvest/harvest.yml
-      line: "{{ item }}"
-      insertbefore: BOF
-    loop:
-    - "  grafana_api_token: {{ login.json.key }}"
-    - "Tools:"
+      insertafter: '^Tools:'
+      regexp: '  grafana_api_token:'
+      line: '  grafana_api_token: {{ login.json.key }}'
     tags: never, api     
   - name: Add Dashboards to Grafana
     docker_container_exec:
@@ -119,7 +117,7 @@
   - name: Stop Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: schmots1/na_harvest
+      image: rahulguptajss/harvest
       state: stopped
       detach: true
     loop: "{{ Pollers|list}}" 
@@ -142,19 +140,19 @@
     tags: never, del, upgrade
   - name: update images
     docker_image:
-      name: schmots1/na_harvest
+      name: rahulguptajss/harvest
       force_source: true
       source: pull
     tags: never, upgrade
   - name: Update Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: schmots1/na_harvest
+      image: rahulguptajss/harvest
       restart: true
       volumes:
       - ./harvest/:/etc/harvest/
       command:
-      - "{{ Pollers[item].prometheus_port}} -p {{ item }}"
+      - "--config /etc/harvest/harvest.yml -p {{ item }} --promPort {{ Pollers[item].ansible_port}}"
       networks:
       - name: harvest
       detach: true
