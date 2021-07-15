@@ -1,9 +1,10 @@
-
+Tools:
+  # add tools here
+  
 Exporters:
   Harvest:
-    exporter: prometheus
+    exporter: Prometheus
     addr: 0.0.0.0
-    master: True
 
 Defaults:
   collectors:
@@ -13,21 +14,14 @@ Defaults:
     - Harvest
   use_insecure_tls: true
 
+# add your Cdot / 7Mode pollers below
+
 Pollers:
-  #unix:
-  #  datacenter: local
-  #  addr: localhost
-  #  collectors:
-  #    - Unix
-  #  exporters:
-  #    - prometheus
-
-  # add your Cdot / 7Mode pollers below, example:
-
   cluster-1:
     datacenter: DC1
     addr: 192.168.55.151
     auth_style: basic_auth
-    prometheus_port: 25000
     username: admin-username
     password: admin-password
+    ansible_port: 25001
+
