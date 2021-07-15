@@ -13,6 +13,7 @@
       source: pull
     loop:
     - prom/prometheus
+    - prom/alertmanager
     - rahulguptajss/harvest
     - grafana/grafana
     tags: setup
@@ -37,9 +38,25 @@
       volumes:
       - prometheus_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
       command:
       - '--config.file=/etc/prometheus/prometheus.yml' 
       ports: "9090:9090"
+      networks: 
+      - name: harvest
+    tags: setup
+  - name: Setup/Verify Prometheus AlertManager
+    docker_container:
+      name: harvest_prometheus_alertmanager
+      image: prom/alertmanager
+      restart: true
+      restart_policy: unless-stopped
+      volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus_alertmanager/alertmanager.yml:/etc/prometheus/alertmanager.yml
+      command:
+      - '--config.file=/etc/prometheus/alertmanager.yml' 
+      ports: "9093:9093"
       networks: 
       - name: harvest
     tags: setup
