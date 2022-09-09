@@ -80,7 +80,12 @@
       volumes:
       - ./harvest/:/etc/harvest/
       command:
-      - "--config /etc/harvest/harvest.yml -p {{ item }} --promPort {{ Pollers[item].ansible_port}}"
+      - --config
+      - /etc/harvest/harvest.yml
+      - -p
+      - "{{ item }}"
+      - --promPort
+      - "{{ Pollers[item].ansible_port }}"
       networks:
       - name: harvest
       detach: true
@@ -169,7 +174,12 @@
       volumes:
       - ./harvest/:/etc/harvest/
       command:
-      - "--config /etc/harvest/harvest.yml -p {{ item }} --promPort {{ Pollers[item].ansible_port}}"
+      - --config
+      - /etc/harvest/harvest.yml
+      - -p
+      - "{{ item }}"
+      - --promPort
+      - "{{ Pollers[item].ansible_port }}"
       networks:
       - name: harvest
       detach: true
