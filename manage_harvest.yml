@@ -14,7 +14,7 @@
     loop:
     - prom/prometheus
     - prom/alertmanager
-    - ghcr.io/harvest:latest
+    - ghcr.io/netapp/harvest:latest
     - grafana/grafana
     tags: setup
   - name: Configure/Verify Prometheus targets
@@ -75,7 +75,7 @@
   - name: Setup/verify Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: ghcr.io/harvest:latest
+      image: ghcr.io/netapp/harvest:latest
       restart_policy: unless-stopped
       volumes:
       - ./harvest/:/etc/harvest/
