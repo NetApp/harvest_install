@@ -122,7 +122,7 @@
   - name: Add Dashboards to Grafana
     docker_container_exec:
       container: "harvest_{{ Pollers|first }}"
-      command: /bin/sh -c "bin/harvest grafana import -a harvest_grafana:3000 --config /etc/harvest/harvest.yml"
+      command: sh -c "bin/harvest grafana import -a harvest_grafana:3000 --config /etc/harvest/harvest.yml"
     tags: never, api, dashboard
   - name: Stop Prometheus
     docker_container:
