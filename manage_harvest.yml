@@ -1,6 +1,11 @@
 ---
 - hosts: localhost
   name: Manage Harvest
+  vars:
+    default_harvest_image: ghcr.io/netapp/harvest:latest
+    default_prom_image: prom/prometheus:v2.33.1
+    default_grafana_image: grafana/grafana:8.3.4
+    default_alertmanger_image: prom/alertmanager
   vars_files:
     harvest/harvest.yml
   collections:
@@ -12,27 +17,31 @@
       name: "{{ item }}"
       source: pull
     loop:
-    - prom/prometheus
-    - prom/alertmanager
-    - ghcr.io/netapp/harvest:latest
-    - grafana/grafana
+    - "{{ default_harvest_image }}"
+    - "{{ default_prom_image }}"
+    - "{{ default_grafana_image }}"
+    - "{{ default_alertmanger_image }}"
     tags: setup
+
   - name: Configure/Verify Prometheus targets
     lineinfile:
       path: ./prometheus/prometheus.yml
       line: "  - targets: ['harvest_{{ item }}:{{Pollers[item].ansible_port}}']"
     loop: "{{ Pollers|list }}"
+
   - name: Create Harvest Network
     docker_network:
       name: harvest
     tags: setup
+
   - name: Create Prometheus storage
     docker_volume:
       name: prometheus_data
+
   - name: Setup/Verify Prometheus
     docker_container:
       name: harvest_prometheus
-      image: prom/prometheus
+      image: "{{ default_prom_image }}"
       restart: true
       restart_policy: unless-stopped
       volumes:
@@ -45,6 +54,7 @@
       networks: 
       - name: harvest
     tags: setup
+
   - name: Setup/Verify Prometheus AlertManager
     docker_container:
       name: harvest_prometheus_alertmanager
@@ -60,10 +70,11 @@
       networks: 
       - name: harvest
     tags: setup
+
   - name: Setup/verify Grafana
     docker_container:
       name: harvest_grafana
-      image: grafana/grafana
+      image: "{{ default_grafana_image }}"
       restart_policy: unless-stopped
       env:
         GF_SECURITY_ADMIN_PASSWORD=pass
@@ -72,10 +83,11 @@
       networks:
       - name: harvest
     tags: setup
+
   - name: Setup/verify Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: ghcr.io/netapp/harvest:latest
+      image: "{{ default_harvest_image }}"
       restart_policy: unless-stopped
       volumes:
       - ./harvest/:/etc/harvest/
@@ -91,6 +103,7 @@
       detach: true
     loop: "{{ Pollers|list}}" 
     tags: setup
+
   - name: Create bearer token
     uri:
       url: "http://{{ansible_default_ipv4.address}}:3000/api/auth/keys"
@@ -103,6 +116,7 @@
       body: '{"name": "apikeycurl", "role": "Admin"}'
     register: login 
     tags: never, api
+
   - name: Creating Prometheus datasource in Grafana
     uri:
       url: "http://{{ansible_default_ipv4.address}}:3000/api/datasources"
@@ -112,64 +126,74 @@
         Authorization: "Bearer {{ login.json.key }}"
       body: '{"name": "Prometheus", "type": "prometheus", "access": "proxy", "url": "http://harvest_prometheus:9090", "isDefault": true, "basicAuth": false}'
     tags: never, api     
-  - name: Prep Grafana dashboard load 
+
+  - name: Prep Grafana dashboard load
     lineinfile:
       path: ./harvest/harvest.yml
       insertafter: '^Tools:'
       regexp: '  grafana_api_token:'
       line: '  grafana_api_token: {{ login.json.key }}'
     tags: never, api     
+
   - name: Add Dashboards to Grafana
     docker_container_exec:
       container: "harvest_{{ Pollers|first }}"
       command: sh -c "bin/harvest grafana import -a harvest_grafana:3000 --config /etc/harvest/harvest.yml"
     tags: never, api, dashboard
+
   - name: Stop Prometheus
     docker_container:
       name: harvest_prometheus
       image: prom/prometheus
       state: stopped
     tags: never, stop
+
   - name: Stop Grafana
     docker_container:
       name: harvest_grafana
-      image: grafana/grafana
+      image: "{{ default_grafana_image }}"
       state: stopped
     tags: never, stop
+
   - name: Stop Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: rahulguptajss/harvest
+      image: "{{ default_harvest_image }}"
       state: stopped
       detach: true
     loop: "{{ Pollers|list}}" 
     tags: never, stop
+
   - name: Remove Prometheus
     docker_container:
       name: harvest_prometheus
       state: absent
     tags: never, del
-  - name: Remve Grafana
+
+  - name: Remove Grafana
     docker_container:
       name: harvest_grafana
       state: absent
     tags: never, del
+
   - name: Remove Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
       state: absent
     loop: "{{ Pollers|list}}" 
     tags: never, del, upgrade
+
   - name: update images
     docker_image:
-      name: rahulguptajss/harvest
+      name: "{{ default_harvest_image }}"
       force_source: true
       source: pull
     tags: never, upgrade
+
   - name: Update Harvest pollers
     docker_container:
       name: "harvest_{{ item }}"
-      image: rahulguptajss/harvest
+      image: "{{ default_harvest_image }}"
       restart: true
       volumes:
       - ./harvest/:/etc/harvest/
