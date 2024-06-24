@@ -1,5 +1,17 @@
 # harvest_install
 
+This repository contains an Ansible playbook to deploy Harvest, Prometheus, and Grafana containers.
+
+If you are new to Harvest,
+it is a tool that collects performance and configuration metrics from ONTAP and StorageGRID clusters
+and stores them in a time-series database.
+Prometheus is the time-series database and Grafana is the visualization tool.
+
+For more information on Harvest, see the [Harvest documentation](https://netapp.github.io/harvest/).
+
+The Harvest containers are configured to monitor ONTAP clusters.
+The Prometheus and Grafana containers are configured to work with Harvest.
+
 Prerequisites
 * Ansible   
 * Community.docker collection (this collection needs the python library `docker`)

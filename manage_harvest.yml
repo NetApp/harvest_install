@@ -50,6 +50,7 @@
       - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
       command:
       - '--config.file=/etc/prometheus/prometheus.yml' 
+      - '--storage.tsdb.retention.time=1y' 
       ports: "9090:9090"
       networks: 
       - name: harvest
@@ -91,6 +92,7 @@
       restart_policy: unless-stopped
       volumes:
       - ./harvest/:/etc/harvest/
+      - ./myconf/:/opt/harvest/myconf
       command:
       - --config
       - /etc/harvest/harvest.yml
@@ -98,6 +100,8 @@
       - "{{ item }}"
       - --promPort
       - "{{ Pollers[item].ansible_port }}"
+      - --confpath
+      - myconf:conf
       networks:
       - name: harvest
       detach: true
@@ -197,6 +201,7 @@
       restart: true
       volumes:
       - ./harvest/:/etc/harvest/
+      - ./myconf/:/opt/harvest/myconf
       command:
       - --config
       - /etc/harvest/harvest.yml
@@ -204,6 +209,8 @@
       - "{{ item }}"
       - --promPort
       - "{{ Pollers[item].ansible_port }}"
+      - --confpath
+      - myconf:conf
       networks:
       - name: harvest
       detach: true
